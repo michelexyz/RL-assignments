@@ -88,65 +88,6 @@ def second_problem(params):
     return v_matrix, alpha_matrix
 
 
-def second_problem_b(params):
-    MAX_ITEMS = params["MAX_ITEMS"]
-    MAX_T = params["MAX_T"]
-    actions = params["actions"]
-    p = params["p"]
-
-    # I use -9999.9 instead of -np.inf to avoid np.inf * 0 = nan
-    p_1 = np.asarray(
-        [
-            [-9999.9, -9999.9, 0.0],
-            [-9999.9, -9999.9, 0.0],
-            [-9999.9, -9999.9, p[0]],
-            [-9999.9, -9999.9, 0.0],
-            [-9999.9, -9999.9, 0.0],
-            [-9999.9, -9999.9, 1.0 - p[0]],
-        ]
-    )
-    p_2 = np.asarray(
-        [
-            [-9999.9, 0.0, 0.0],
-            [-9999.9, p[1], p[1]],
-            [-9999.9, 0.0, 0.0],
-            [-9999.9, 0.0, 0.0],
-            [-9999.9, 1.0 - p[1], 1 - p[1]],
-            [-9999.9, 0.0, 0.0],
-        ]
-    )
-    p_3 = np.asarray(
-        [
-            [p[2], p[2], p[2]],
-            [0.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0],
-            [1.0 - p[2], 1.0 - p[2], 1.0 - p[2]],
-            [0.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0],
-        ]
-    )
-    p_matrix = np.stack((p_1, p_2, p_3), axis=0)
-    v_matrix = np.zeros(shape=(MAX_ITEMS + 1, len(actions), MAX_T + 1))
-    alpha_matrix = np.ones(shape=v_matrix.shape) * np.nan
-
-    for t in range(1, MAX_T + 1):
-        a = np.einsum(
-            "bij,bjk->bik",
-            np.stack(
-                [np.hstack([v_matrix[:-1, :, t - 1], v_matrix[1:, :, t - 1]])] * 3,
-                axis=0,
-            ),
-            p_matrix,
-        )
-        v_matrix[1:, :, t] = np.max(
-            (p * actions)[:, np.newaxis, np.newaxis] + a, axis=0
-        )
-        alpha_matrix[1:, :, t] = np.argmax(
-            (p * actions)[:, np.newaxis, np.newaxis] + a, axis=0
-        )
-    return v_matrix, alpha_matrix
-
-
 def simulate_process(alpha_matrix, params):
     ran_vals = np.random.rand(1000, 500)
     actions = params["actions"]
@@ -199,6 +140,7 @@ def plot_optimal_policy_A(alpha_matrix, fname="imgs/policyA.png"):
 
 def plot_rewards_hist(v_matrix, rewards, fname="imgs/rewards.png"):
     avg_reward = np.mean(rewards)
+    print(f"Simulations average reward: {avg_reward}")
     fig, ax = plt.subplots()
     ax.hist(rewards, bins=20, color="skyblue", edgecolor="black")
     ax.set_title(r"Total rewards under optimal policy $\alpha^*$")
@@ -275,4 +217,4 @@ if __name__ == "__main__":
     plot_rewards_hist(v_matrix, rewards)
     v_matrix, alpha_matrix = second_problem(params)
     print(f"Second problem total expected reward: {np.round(v_matrix[100,:, 500], 3)}")
-    plot_optimal_policy_B(alpha_matrix, params["actions"], fname="imgs/policyB.png")
+    plot_optimal_policy_B(alpha_matrix, params["actions"], fname="imgs/policyBC.png")
