@@ -1,4 +1,8 @@
 # No notebooks in the meantime
+*.ipynb
+
+# No imgs
+imgs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -111,6 +115,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.envrc
 
 # Spyder project settings
 .spyderproject
