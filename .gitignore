@@ -1,5 +1,5 @@
 # No notebooks in the meantime
-*.ipynb
+#*.ipynb
 
 # No imgs
 imgs/
@@ -137,3 +137,6 @@ dmypy.json
 
 # Editor
 .vscode/
+
+# MacOS
+.DS_Store
