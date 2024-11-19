@@ -217,4 +217,4 @@ if __name__ == "__main__":
     plot_rewards_hist(v_matrix, rewards)
     v_matrix, alpha_matrix = second_problem(params)
     print(f"Second problem total expected reward: {np.round(v_matrix[100,:, 500], 3)}")
-    plot_optimal_policy_B(alpha_matrix, params["actions"], fname="imgs/policyBC.png")
+    plot_optimal_policy_B(alpha_matrix, params["actions"], fname="imgs/policyB.png")
