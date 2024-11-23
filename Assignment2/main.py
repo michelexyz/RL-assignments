@@ -129,7 +129,7 @@ def compute_best_action(x1, x2, v): #compute the best action for the single stat
 
     best_value = np.inf
 
-    if x1 != 1 and x2 != 1:
+    if x1 > 0 and x2 > 0: # we order only when we are out of stock. # THIS CAN BE REMOVED IF WE WANT CONSIDER THE GENERAL CASE
 
         p_vector = compute_p_vector(x1, x2)
 
@@ -149,7 +149,7 @@ def compute_best_action(x1, x2, v): #compute the best action for the single stat
                 if y1 > 19 or y2 > 19: # we can't have more than 20 items
 
                     continue
-                if y1 == 0 and y2 == 0: # we don't consider the case where we sell everything
+                if y1 == 0 or y2 == 0: # we don't consider the case where we sell everything
                         
                         continue
                 
