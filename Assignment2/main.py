@@ -108,7 +108,7 @@ def question_e(n=10_000, eps=10e-5):
 
 # Question f: Define the Bellman Equation and solve it using value iteration (minimizing the long-run average costs). Find the optimal policy and report the corresponding long-run average costs.
 
-def compute_p_vector(y1, y2):
+def compute_p_vector(y1, y2): #compute the probability vector for the single output state y1, y2 after the policy is applied
 
     p_vector = np.zeros(MAX_ITEMS**2)
 
@@ -117,7 +117,7 @@ def compute_p_vector(y1, y2):
     p_vector[(y1 * MAX_ITEMS-1) + y2 + 1] = 1/4
     p_vector[(y1 * MAX_ITEMS-1) + y2-1] = 1/4
 
-def compute_best_action(x1, x2, v):
+def compute_best_action(x1, x2, v): #compute the best action for the single state x1, x2 given the value function v
 
     p_vector = np.zeros(MAX_ITEMS**2)
 
