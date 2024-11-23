@@ -2,6 +2,8 @@ import time
 
 import numpy as np
 
+import tqdm
+
 MAX_ITEMS = 20
 MAX_ORDER = 5  # Policy fixed to replenish up to 5
 PI_0 = np.array((20, 20))  # Initial state (irrelevant)
@@ -93,7 +95,6 @@ def question_d(n=10_000):
         pi = pi @ p
     return pi @ expected_costs(), pi
 
-def geneat
 
 def question_e(n=10_000, eps=10e-5):
     v = np.zeros((MAX_ITEMS**2))
@@ -107,7 +108,76 @@ def question_e(n=10_000, eps=10e-5):
 
 # Question f: Define the Bellman Equation and solve it using value iteration (minimizing the long-run average costs). Find the optimal policy and report the corresponding long-run average costs.
 
-def 
+def compute_p_vector(y1, y2):
+
+    p_vector = np.zeros(MAX_ITEMS**2)
+
+    p_vector[y1 * MAX_ITEMS + y2] = 1/4
+    p_vector[y1 * MAX_ITEMS + y2 - 1] = 1/4
+    p_vector[(y1 * MAX_ITEMS-1) + y2 + 1] = 1/4
+    p_vector[(y1 * MAX_ITEMS-1) + y2-1] = 1/4
+
+def compute_best_action(x1, x2, v):
+
+    p_vector = np.zeros(MAX_ITEMS**2)
+
+    best_t_y1 = None
+    best_t_y2 = None
+
+    best_value = np.inf
+
+    if x1 != 1 and x2 != 1:
+        return None, None, None
+
+
+    else:
+
+        for t_y1 in range(1,20):
+            for t_y2 in range(1,20):
+                p_vector = compute_p_vector(t_y1+1, t_y2+1)
+
+                expected_value = p_vector @ v
+
+                # assert that the value is a scalar or a 1x1 matrix
+
+                assert expected_value.shape == (1,1) or expected_value.shape == (), f"Expected value has shape {expected_value.shape}"
+
+                if expected_value < best_value:
+                    best_value = expected_value
+                    best_t_y1 = t_y1
+                    best_t_y2 = t_y2
+
+    
+    return best_t_y1, best_t_y2, best_value
+
+def question_f(n=10_000, eps=10e-5):
+
+    v = np.zeros((MAX_ITEMS**2))
+    r = expected_costs()
+    #p = prob_matrix_fixed()
+
+    new_v = np.zeros((MAX_ITEMS**2))
+
+    policy = np.zeros((MAX_ITEMS**2, 2))
+
+
+
+    for _ in tqdm(range(n), desc="Value iteration"):
+        for i in range(MAX_ITEMS**2):
+
+            v = new_v
+
+            
+
+            x1, x2 = divmod(i, MAX_ITEMS)
+            t_y1, t_y2, value = compute_best_action(x1, x2, v)
+
+            policy[i] = [t_y1, t_y2]
+
+            new_v[i] = value + r[i]
+
+    return new_v- new_v.min(), new_v-v, policy
+ 
 
 
 
