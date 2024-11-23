@@ -1,0 +1,52 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} % For inserting images
+\usepackage{minted}   % For typesetting code
+\usepackage{eulervm}  % We suggest the Euler typeface for math, but feel free to 
+\usepackage{charter}  % This typeface works well with Euler
+\usepackage{xcolor}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{float}
+\usepackage{bm}
+
+\usepackage[T1]{fontenc}       % Use T1 encoding
+
+\title{Assignment X}
+
+% Single author assignments
+\author{FirstName LastName (Student number)}
+
+% Group  assignments
+% \author{FirstName1 LastName2 (Student Number) \\ FirstName2 LastName2 (Student number)\\ FirstName3 LastName3 (Student number)}
+
+\date{October 2023}
+
+\input{commands} 
+
+\begin{document}
+
+\maketitle
+
+\section{Answers}
+
+\paragraph{Question D} To compute the limiting distribution we first need to construct the transition probability matrix \(P = P_{xy}\), with the transition probabilities given by ??? (Question b). This will be a \(400 \times 400\) matrix, where the rows indicate the intial state and the columns the final state. The probability distribution vector \(\vec{\pi}\) will be of size \(400\) and each component wlil correspond to one of the possible states of the system, so that \(\vec{\pi}^T = (\pi_{11} \hdots~ \pi_{2020})\). Each subscript represents the number of items left for each item type. The detailed construction of this matrix can be found in thte Appendix.
+We do:
+\[
+\vec{\pi}_{t+1}^T = \vec{\pi}_{t}^T P 
+\]
+with an arbitrary \(\vec{\pi}_0\) until convergence. The result is \(\vec{\pi}_*\), which is the limiting distribution. The long run average costs can be computed now easily by multiplying \(\vec{\pi}_*\) by the  expected costs \(c(\x)\). The expected costs for each state \(\x\) are just the holding costs for that state plus an extra cost of 5 if either \(x_1\) or \(x_2\) is equal to one. The costs can also be stored in a vector \(\mathbf{c}\) of the same dimensions as \(\vec{\pi}_*\) so the long-run average costs are then \(\phi_* = \mathbf{c}\cdot \vec{\pi}_*\). We get a value of 10.172 for \(\phi_*\). 
+
+\paragraph{Question E} Before defining the Poisson equation we need to introduce the value function for this problem, \(V_t(\x)\). This gives the total expected costs for a given state \(\x\) when there are \(t\) time steps left. As before, we can construct a vecot \(\mathbf{V}\) with the same dimensions as \(\vec{\pi}\) that stores, for a given \(t\), the total expected costs of every state, so that \(\mathbf{V} = (V_{11} \hdots~V_{2020})\). With this, the Poisson equation is:
+\[
+    \mathbf{V} + \vec{\phi} = \mathbf{c} + P\mathbf{V}
+\]
+Where \(\vec{\phi}\) is just a vector of the right dimensions wiht all its entries equal to \(\phi\). 
+We solve the equation using value iteration, this is, we do \(\mathbf{V}_{t+1} = \mathbf{c} + P\mathbf{V}_t\) until \(\mathbf{V}_{t+1} - \mathbf{V}_t \leq \epsilon\) for \(\epsilon = 10^{-5}\). When convergence is reached, \(\mathbf{V}_* = \mathbf{V} - \min\{\mathbf{V}\}\) and \(\phi_* = \mathbf{c} + P\mathbf{V} - \mathbf{V}\). We get a value of 10.172 for \(\phi_*\).
+
+\appendix
+\section{Appendix}
+
+\end{document}
