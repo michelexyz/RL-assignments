@@ -129,7 +129,7 @@ def compute_best_action(x1, x2, v): #compute the best action for the single stat
 
     best_value = np.inf
 
-    if x1 > 0 and x2 > 0: # we order only when we are out of stock. # THIS CAN BE REMOVED IF WE WANT CONSIDER THE GENERAL CASE
+    if x1 > 0 and x2 > 0: # we order only when we are out of stock. # THIS CAN BE REMOVED IF WE WANT CONSIDER THE GENERAL CASE, but R should be updated accordingly
 
         p_vector = compute_p_vector(x1, x2)
 
