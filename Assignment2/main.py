@@ -2,7 +2,7 @@ import time
 
 import numpy as np
 
-import tqdm
+from tqdm import tqdm
 
 MAX_ITEMS = 20
 MAX_ORDER = 5  # Policy fixed to replenish up to 5
@@ -111,11 +111,14 @@ def question_e(n=10_000, eps=10e-5):
 def compute_p_vector(y1, y2): #compute the probability vector for the single output state y1, y2 after the policy is applied
 
     p_vector = np.zeros(MAX_ITEMS**2)
+    
 
     p_vector[y1 * MAX_ITEMS + y2] = 1/4
     p_vector[y1 * MAX_ITEMS + y2 - 1] = 1/4
     p_vector[(y1 * MAX_ITEMS-1) + y2 + 1] = 1/4
     p_vector[(y1 * MAX_ITEMS-1) + y2-1] = 1/4
+
+    return p_vector
 
 def compute_best_action(x1, x2, v): #compute the best action for the single state x1, x2 given the value function v
 
@@ -127,14 +130,30 @@ def compute_best_action(x1, x2, v): #compute the best action for the single stat
     best_value = np.inf
 
     if x1 != 1 and x2 != 1:
-        return None, None, None
+
+        p_vector = compute_p_vector(x1, x2)
+
+        expected_value = p_vector @ v
+
+        return None, None, expected_value
 
 
     else:
 
-        for t_y1 in range(1,20):
-            for t_y2 in range(1,20):
-                p_vector = compute_p_vector(t_y1+1, t_y2+1)
+        for t_y1 in range(0,20): # we consider also not ordering anything
+            for t_y2 in range(0,20):
+
+
+                y1, y2 = x1 + t_y1, x2 + t_y2
+
+                if y1 > 19 or y2 > 19: # we can't have more than 20 items
+
+                    continue
+                if y1 == 0 and y2 == 0: # we don't consider the case where we sell everything
+                        
+                        continue
+                
+                p_vector = compute_p_vector(t_y1, t_y2)
 
                 expected_value = p_vector @ v
 
