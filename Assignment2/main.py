@@ -4,6 +4,8 @@ import numpy as np
 
 from tqdm import tqdm
 
+
+import copy
 MAX_ITEMS = 20
 MAX_ORDER = 5  # Policy fixed to replenish up to 5
 PI_0 = np.array((20, 20))  # Initial state (irrelevant)
@@ -115,7 +117,7 @@ def compute_p_vector(y1, y2): #compute the probability vector for the single out
 
     p_vector[y1 * MAX_ITEMS + y2] = 1/4
     p_vector[y1 * MAX_ITEMS + y2 - 1] = 1/4
-    p_vector[(y1 * MAX_ITEMS-1) + y2 + 1] = 1/4
+    p_vector[(y1 * MAX_ITEMS-1) + y2] = 1/4
     p_vector[(y1 * MAX_ITEMS-1) + y2-1] = 1/4
 
     return p_vector
@@ -129,7 +131,9 @@ def compute_best_action(x1, x2, v): #compute the best action for the single stat
 
     best_value = np.inf
 
-    if x1 > 0 and x2 > 0: # we order only when we are out of stock. # THIS CAN BE REMOVED IF WE WANT CONSIDER THE GENERAL CASE, but R should be updated accordingly
+    #if x1 > 0 and x2 > 0: # we order only when we are out of stock. # THIS CAN BE REMOVED IF WE WANT CONSIDER THE GENERAL CASE, but R should be updated accordingly
+
+    if False:
 
         p_vector = compute_p_vector(x1, x2)
 
@@ -153,13 +157,16 @@ def compute_best_action(x1, x2, v): #compute the best action for the single stat
                         
                         continue
                 
-                p_vector = compute_p_vector(t_y1, t_y2)
+                p_vector = compute_p_vector(y1, y2)
 
-                expected_value = p_vector @ v
+                expected_value = (p_vector @ v) 
+
+                expected_value += H @ np.array([
+                    x1, x2]) + 5 * (t_y1 > 0 or t_y1 > 0) # we add the cost of the action
 
                 # assert that the value is a scalar or a 1x1 matrix
 
-                assert expected_value.shape == (1,1) or expected_value.shape == (), f"Expected value has shape {expected_value.shape}"
+                #assert expected_value.shape == (1,1) or expected_value.shape == (), f"Expected value has shape {expected_value.shape}"
 
                 if expected_value < best_value:
                     best_value = expected_value
@@ -182,18 +189,19 @@ def question_f(n=10_000, eps=10e-5):
 
 
     for _ in tqdm(range(n), desc="Value iteration"):
+        v = copy.deepcopy(new_v)
         for i in range(MAX_ITEMS**2):
-
-            v = new_v
-
             
 
             x1, x2 = divmod(i, MAX_ITEMS)
             t_y1, t_y2, value = compute_best_action(x1, x2, v)
 
-            policy[i] = [t_y1, t_y2]
+            policy[i, 0] = t_y1
+            policy[i, 1] = t_y2
 
-            new_v[i] = value + r[i]
+            new_v[i] = value
+
+        #new_v = r + new_v
 
     return new_v- new_v.min(), new_v-v, policy
  
