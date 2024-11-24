@@ -9,7 +9,7 @@ import copy
 MAX_ITEMS = 20
 MAX_ORDER = 5  # Policy fixed to replenish up to 5
 PI_0 = np.array((20, 20))  # Initial state (irrelevant)
-H = np.array([1, 2])  # Holding costs for each item type
+H = np.array([1,2])  # Holding costs for each item type
 K = 5  # Order costs
 
 
@@ -117,8 +117,8 @@ def compute_p_vector(y1, y2): #compute the probability vector for the single out
 
     p_vector[y1 * MAX_ITEMS + y2] = 1/4
     p_vector[y1 * MAX_ITEMS + y2 - 1] = 1/4
-    p_vector[(y1 * MAX_ITEMS-1) + y2] = 1/4
-    p_vector[(y1 * MAX_ITEMS-1) + y2-1] = 1/4
+    p_vector[(y1-1) * MAX_ITEMS + y2] = 1/4
+    p_vector[(y1-1) * MAX_ITEMS + y2-1] = 1/4
 
     return p_vector
 
@@ -159,10 +159,10 @@ def compute_best_action(x1, x2, v): #compute the best action for the single stat
                 
                 p_vector = compute_p_vector(y1, y2)
 
-                expected_value = (p_vector @ v) 
+                expected_value = p_vector @ v
 
                 expected_value += H @ np.array([
-                    x1, x2]) + 5 * (t_y1 > 0 or t_y1 > 0) # we add the cost of the action
+                    x1+1, x2+1]) + K * (t_y1 > 0 or t_y2 > 0) # we add the cost of the action
 
                 # assert that the value is a scalar or a 1x1 matrix
 
@@ -173,12 +173,16 @@ def compute_best_action(x1, x2, v): #compute the best action for the single stat
                     best_t_y1 = t_y1
                     best_t_y2 = t_y2
 
+    if best_value is np.inf:
+        raise ValueError("No best value found")
+
     
     return best_t_y1, best_t_y2, best_value
 
-def question_f(n=10_000, eps=10e-5):
+def question_f(n=10_000):
 
-    v = np.zeros((MAX_ITEMS**2))
+    v =np.zeros((MAX_ITEMS**2))
+
     r = expected_costs()
     #p = prob_matrix_fixed()
 
@@ -188,7 +192,7 @@ def question_f(n=10_000, eps=10e-5):
 
 
 
-    for _ in tqdm(range(n), desc="Value iteration"):
+    for t in tqdm(range(n), desc="Value iteration"):
         v = copy.deepcopy(new_v)
         for i in range(MAX_ITEMS**2):
             
@@ -196,13 +200,14 @@ def question_f(n=10_000, eps=10e-5):
             x1, x2 = divmod(i, MAX_ITEMS)
             t_y1, t_y2, value = compute_best_action(x1, x2, v)
 
-            policy[i, 0] = t_y1
-            policy[i, 1] = t_y2
+            policy[x1*MAX_ITEMS + x2 , 0] = t_y1
+            policy[x1*MAX_ITEMS + x2 , 1] = t_y2
 
-            new_v[i] = value
+            new_v[x1*MAX_ITEMS + x2] = value
+
+        
 
         #new_v = r + new_v
-
     return new_v- new_v.min(), new_v-v, policy
  
 
