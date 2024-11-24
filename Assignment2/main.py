@@ -27,15 +27,6 @@ def compute_prob_fixed(x1, x2, y1, y2):
     cond2 = x2 - 1 + (4 if x2 == 1 else 0) <= y2 <= x2 + (4 if x2 == 1 else 0)
     return 1 / 4 if cond1 and cond2 else 0
 
-def compute_prob(x1, x2, y1, y2, t_y1, t_y2):
-    """
-    Compute the probability of transitioning from state (x1, x2) to state (y1, y2) given the sales topping policy t_y1 and t_y2
-    """
-    cond1 = x1 - 1 + (t_y1 if x1 == 1 else 0) <= y1 <= x1 + (t_y2 if x1 == 1 else 0)
-    cond2 = x2 - 1 + (t_y1 if x2 == 1 else 0) <= y2 <= x2 + (t_y2 if x2 == 1 else 0)
-    
-
-
 
 def prob_matrix_fixed():
     p = np.zeros((MAX_ITEMS**2, MAX_ITEMS**2))
@@ -132,7 +123,6 @@ def compute_best_action(x1, x2, v): #compute the best action for the single stat
     best_value = np.inf
 
     #if x1 > 0 and x2 > 0: # we order only when we are out of stock. # THIS CAN BE REMOVED IF WE WANT CONSIDER THE GENERAL CASE, but R should be updated accordingly
-
     if False:
 
         p_vector = compute_p_vector(x1, x2)
@@ -146,7 +136,6 @@ def compute_best_action(x1, x2, v): #compute the best action for the single stat
 
         for t_y1 in range(0,20): # we consider also not ordering anything
             for t_y2 in range(0,20):
-
 
                 y1, y2 = x1 + t_y1, x2 + t_y2
 
@@ -163,10 +152,6 @@ def compute_best_action(x1, x2, v): #compute the best action for the single stat
 
                 expected_value += H @ np.array([
                     x1+1, x2+1]) + K * (t_y1 > 0 or t_y2 > 0) # we add the cost of the action
-
-                # assert that the value is a scalar or a 1x1 matrix
-
-                #assert expected_value.shape == (1,1) or expected_value.shape == (), f"Expected value has shape {expected_value.shape}"
 
                 if expected_value < best_value:
                     best_value = expected_value
@@ -190,8 +175,6 @@ def question_f(n=10_000):
 
     policy = np.zeros((MAX_ITEMS**2, 2))
 
-
-
     for t in tqdm(range(n), desc="Value iteration"):
         v = copy.deepcopy(new_v)
         for i in range(MAX_ITEMS**2):
@@ -205,12 +188,7 @@ def question_f(n=10_000):
 
             new_v[x1*MAX_ITEMS + x2] = value
 
-        
-
-        #new_v = r + new_v
     return new_v- new_v.min(), new_v-v, policy
- 
-
 
 
 
