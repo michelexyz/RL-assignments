@@ -31,6 +31,8 @@ class Node:
     from_action: Optional[int]
     children: Set[Optional[Node]]
     depth: int
+    n_visits: int
+    value: float
 
     MAX_CHILDREN: int = 2
 
@@ -62,7 +64,8 @@ class Node:
         return cls(_parent=parent, _from_action=random.choice(possible))
 
     def select(self) -> Node:
-        ...
+        if self.is_leaf:
+            return self
         return UCB.select(nodes=self.children)
 
     def get_actions(self) -> List[int]:
@@ -88,16 +91,10 @@ class MCTS:
     root: Node
 
     def __init__(self) -> None:
-        self.root: Node = ...
-
-    # def init()
+        self.root: Node = Node()
 
     def select(self) -> Node:
-        if self.root.is_leaf:
-            node = self.expand(self.root)
-        else:
-            node = self.root
-
+        node = self.root.select()
         while not node.is_leaf:
             node = node.select()
         return node
