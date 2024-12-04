@@ -2,9 +2,16 @@ from __future__ import annotations
 
 import math
 import random
-from typing import List, NamedTuple, Optional, Set
+from abc import ABC, abstractmethod
+from typing import Dict, List, NamedTuple, Optional, Set, Tuple
+
+import numpy as np
 
 ACTIONS = (5, 7)
+
+
+class ColumnFullError(Exception):
+    pass
 
 
 class ActionTuple(NamedTuple):
@@ -13,23 +20,97 @@ class ActionTuple(NamedTuple):
 
 
 class GameBoard:
-    pass
+    grid: np.ndarray
+
+    def is_finished(self) -> bool: ...  # Check if the matrix `self.grid` is full or not
+
+    def game_result(self) -> int:
+        assert self.is_finished()
+        return ...  # [1, 0, -1] depending on result
+
+    def step(self, action: ActionTuple) -> bool:
+        # FIRST player step
+        p_action = self.validate_action(action.player_action)
+        ...  # update the grid according to `p_action`
+        opp_action = self.validate_action(action.opp_action)
+        ...  # update the grid according to `opp_action`
+        return self.is_finished()
+
+    def validate_action(self, action: int) -> int:
+        if ...:  # Check whether `action` column of our `self.grid` has spots left
+            raise ColumnFullError
+        return action
+
+    def available_actions_dict() -> Dict[str, int]:
+        """
+        Return a dictionary with the number of EMPTY positions per column (action)
+        BE CAREFUL: Only include columns with spots left
+        Like:
+            DO THIS: {"5": 2, "7": 1}
+            NOT THIS: {"5": 2, "7": 1, "2" 0, "1": 0 ...}
+        """
+        result = ...
+        assert all(left > 0 for left in result.values())
+        ...
+
+    def random_step(self) -> bool:
+        player, opp = random.choice(ACTIONS), random.choice(ACTIONS)
+        return self.step(ActionTuple(player, opp))
+
+    def play(self, actions: List[ActionTuple]) -> Tuple[int, bool]:
+        for action in actions:
+            self.step(action)
+
+        is_finished = self.is_finished()
+        if is_finished:
+            # The node is terminal, so return
+            return self.game_result(), True
+
+        # The node that we set as leaf node is not terminal, so rollout random
+        while not is_finished:
+            is_finished = self.random_step()
+        return self.game_result(), False
+
+    @staticmethod
+    def update_available_actions(
+        action: int, available_actions: Dict[str, int]
+    ) -> Dict[str, int]:
+        assert isinstance(action, int)
+        available_actions[action] -= 1
+        return {a: left for a, left in available_actions.items() if left > 0}
+
+    @staticmethod
+    def get_available_actions(available_actions_dict: Dict[str, int]) -> Set[int]:
+        return set(int(a) for a, _ in available_actions_dict)
 
 
-class UCB:
+class SelectionStrategy(ABC):
+    @staticmethod
+    @abstractmethod
+    def strategy(node: Node) -> float:
+        pass
+
+    @classmethod
+    def select(cls, nodes: Set[Node]) -> Node:
+        return max(nodes, key=cls.strategy)
+
+
+class UCB(SelectionStrategy):
     C = 2
 
     @staticmethod
-    def ucb(node: Node) -> float:
+    def strategy(node: Node) -> float:
         if node.n_visits == 0:
             return math.inf
-        return (node.value / node.n_visits) + (
+        return node.mean + (
             UCB.C * math.sqrt(math.log(node.parent.n_visits / node.n_visits))
         )
 
+
+class Greedy(SelectionStrategy):
     @staticmethod
-    def select(nodes: Set[Node]) -> Node:
-        return max(nodes, key=UCB.ucb)
+    def strategy(node: Node) -> float:
+        return node.mean
 
 
 class Node:
@@ -40,12 +121,19 @@ class Node:
     depth: int
     n_visits: int
     value: float
+    is_terminal: bool
 
     MAX_CHILDREN: int = 2
 
     @property
     def is_leaf(self) -> bool:
         return len(self.children) < self.MAX_CHILDREN
+
+    @property
+    def mean(self) -> float:
+        if self.n_visits == 0:
+            return 0
+        return self.value / self.n_visits
 
     def __init__(
         self,
@@ -62,40 +150,53 @@ class Node:
 
         self.children = set()
         self.depth = _parent.depth + 1 if _parent else 0
-        self.n_visits: int = 0
-        self.value: float = 0.0
+        self.n_visits = 0
+        self.value = 0.0
+        self.is_terminal = False
 
     @classmethod
-    def from_parent(cls, parent: Node) -> Node:
-        """Create a node from parent, expanding with random edge (actions)"""
+    def from_parent(cls, parent: Node, available_actions_dict: Dict[str, int]) -> Node:
+        """Create a node from parent, expanding with random edge (action)"""
+        # First player
+        available = GameBoard.get_available_actions(available_actions_dict)
         unavailable = set(ch.from_actions.player_action for ch in parent.children)
-        possible = set(ACTIONS) - unavailable
+        possible = list(set(ACTIONS) - unavailable)
+        player_action = random.choice(possible)
+
+        # Then opponent
+        available = GameBoard.get_available_actions(
+            GameBoard.update_available_actions(player_action, available_actions_dict)
+        )
+        opp_action = random.choice(list(available))
         return cls(
             _parent=parent,
             _from_actions=ActionTuple(
-                player_action=random.choice(possible), opp_action=random.choice(ACTIONS)
+                player_action=player_action, opp_action=opp_action
             ),
         )
 
-    def select(self) -> Node:
+    def select(self, strategy: SelectionStrategy = UCB) -> Node:
         self.n_visits += 1
-        if self.is_leaf:
+        if self.is_leaf:  # You only select when you have all your children
             return self
-        return UCB.select(nodes=self.children)
+        return strategy.select(nodes=self.children)
 
     def __eq__(self, value: object) -> bool:
         """This will cause problems if either of the objects we are comparing
         is a root node. This should never be the case.
         """
         if isinstance(value, Node):
-            return self.depth == value.depth and self.from_action == value.from_action
+            return (
+                self.depth == value.depth
+                and self.from_actions.player_action == value.from_actions.player_action
+            )
         return NotImplemented
 
     def __hash__(self) -> int:
         """This will cause problems if either of the objects we are comparing
         is a root node. This should never be the case.
         """
-        return hash((self.depth, *self.from_actions))
+        return hash((self.depth, self.from_actions.player_action))
 
 
 class MCTS:
@@ -111,12 +212,17 @@ class MCTS:
             node = node.select()
         return node
 
-    def expand(self, parent: Node) -> Node:
-        child = Node.from_parent(parent=parent)
+    def expand(self, parent: Node, available: Dict[str, int]) -> Node:
+        if parent.is_terminal:
+            return parent
+
+        child = Node.from_parent(parent=parent, available_actions_dict=available)
         parent.children.add(child)
         return child
 
-    def update(self, leaf: Node, value: int) -> None:
+    def update(self, leaf: Node, value: int, is_terminal: bool) -> None:
+        """Here is where the backprop happens"""
+        leaf.is_terminal = is_terminal
         leaf.value += value
         parent = leaf.parent
         while parent:
@@ -129,9 +235,8 @@ class MCTS:
         while parent:  # iterate until reaching root
             actions.append(parent.from_actions)
             parent = parent.parent
-        return actions[
-            1::-1
-        ]  # reverse list to take actions in order from root, excluding root `from_action`
+        assert len(actions) > 1
+        return actions[:0:-1]  # reverse and remove last action tuple (`None` always)
 
 
 class Environment:
@@ -139,7 +244,15 @@ class Environment:
         self.mcts = MCTS()
         self.game_board = GameBoard()
 
-    def run(self):
-        leaf = self.mcts.expand(self.mcts.select())
-        reward = self.game_board.play(actions=self.mcts.get_actions(leaf))
-        self.mcts.update(leaf=leaf, value=reward)
+    def run(self, maxiter: int = 100):
+        best_actions = []
+        for _ in range(maxiter):
+            leaf = self.mcts.expand(
+                self.mcts.select(), available=self.game_board.available_actions_dict()
+            )
+            reward, is_terminal = self.game_board.play(
+                actions=self.mcts.get_actions(leaf)
+            )
+            self.mcts.update(leaf=leaf, value=reward, is_terminal=is_terminal)
+
+        best_actions
