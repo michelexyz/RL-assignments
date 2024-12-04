@@ -195,12 +195,12 @@ def question_f(n=10_000):
 def main():
     # Question c
     c, _ = question_c()
-    print(f"Question c) long-run average costs from simulation: {c}")
+    print(f"Question c) long-run average costs from simulation: {round(c, 3)}")
     # Question d
     c_lim, _ = question_d()
-    print(f"Question d) long-run average costs for lim distr.: {c_lim}")
+    print(f"Question d) long-run average costs for lim distr.: {round(c_lim, 3)}")
     v, phi_star = question_e()
-    print(f"Question e) phi star: {phi_star}")
+    print(f"Question e) phi star: {round(phi_star, 3)}")
 
 
 if __name__ == "__main__":
