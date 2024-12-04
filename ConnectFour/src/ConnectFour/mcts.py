@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import random
 from abc import ABC, abstractmethod
+from enum import IntEnum
 from typing import Dict, List, NamedTuple, Optional, Set, Tuple
 
 import numpy as np
@@ -19,57 +20,82 @@ class ActionTuple(NamedTuple):
     opp_action: int
 
 
+class PlayerType(IntEnum):
+    US = 1
+    OPPONENT = 2
+
+
 class GameBoard:
     grid: np.ndarray
 
+    # TODO
+    @property
     def is_finished(self) -> bool: ...  # Check if the matrix `self.grid` is full or not
 
+    # TODO
+    def __init__(self, nrows: int, ncols: int) -> None:
+        self.grid = ...
+
+    # TODO
     def game_result(self) -> int:
-        assert self.is_finished()
+        assert self.is_finished
         return ...  # [1, 0, -1] depending on result
 
-    def step(self, action: ActionTuple) -> bool:
-        # FIRST player step
-        p_action = self.validate_action(action.player_action)
-        ...  # update the grid according to `p_action`
-        opp_action = self.validate_action(action.opp_action)
-        ...  # update the grid according to `opp_action`
-        return self.is_finished()
+    # TODO
+    def step(self, action: int, player: int) -> bool:
+        action = self.validate_action(action)
+        ...  # update the grid according to `action` and `player` type
+        return self.is_finished
 
+    # TODO
     def validate_action(self, action: int) -> int:
         if ...:  # Check whether `action` column of our `self.grid` has spots left
             raise ColumnFullError
         return action
 
+    # TODO
     def available_actions_dict() -> Dict[str, int]:
         """
         Return a dictionary with the number of EMPTY positions per column (action)
         BE CAREFUL: Only include columns with spots left
         Like:
-            DO THIS: {"5": 2, "7": 1}
+            RETURN THIS: {"5": 2, "7": 1}
             NOT THIS: {"5": 2, "7": 1, "2" 0, "1": 0 ...}
         """
         result = ...
+        assert len(result) > 0
         assert all(left > 0 for left in result.values())
         ...
 
-    def random_step(self) -> bool:
-        player, opp = random.choice(ACTIONS), random.choice(ACTIONS)
-        return self.step(ActionTuple(player, opp))
+    def random_step(self, player: int) -> bool:
+        # Get current available actions, return if there is none
+        available = list(self.get_availabe_actions())
+        if not available:
+            return True
+        return self.step(random.choice(available), player)
 
     def play(self, actions: List[ActionTuple]) -> Tuple[int, bool]:
-        for action in actions:
-            self.step(action)
+        for p_action, opp_action in actions:
+            self.step(action=p_action, player=PlayerType.US)
+            self.step(action=opp_action, player=PlayerType.OPPONENT)
 
-        is_finished = self.is_finished()
-        if is_finished:
+        if self.is_finished:
             # The node is terminal, so return
             return self.game_result(), True
 
         # The node that we set as leaf node is not terminal, so rollout random
-        while not is_finished:
-            is_finished = self.random_step()
+        current_player = PlayerType.US
+        while not self.is_finished:
+            self.random_step(player=current_player)
+            current_player = (
+                PlayerType.US
+                if current_player == PlayerType.OPPONENT
+                else PlayerType.OPPONENT
+            )
         return self.game_result(), False
+
+    def get_availabe_actions(self) -> Set[int]:
+        return GameBoard.get_availabe_actions(self.available_actions_dict())
 
     @staticmethod
     def update_available_actions(
@@ -255,4 +281,4 @@ class Environment:
             )
             self.mcts.update(leaf=leaf, value=reward, is_terminal=is_terminal)
 
-        best_actions
+        ...
