@@ -1,28 +1,44 @@
+from typing import Tuple
+
+import numpy as np
 from connect_four.game_board import GameBoard
 from connect_four.mcts import MCTS
+from connect_four.node import Greedy
+
+game_init = np.array(
+    [
+        [2, 2, 2, 1, 0, 1, 0],
+        [2, 1, 1, 1, 0, 2, 0],
+        [1, 2, 2, 2, 0, 1, 0],
+        [2, 1, 1, 1, 0, 2, 0],
+        [1, 1, 1, 2, 0, 2, 0],
+        [2, 2, 1, 2, 0, 1, 0],
+    ]
+)
 
 
 class Environment:
     def __init__(self) -> None:
         self.mcts = MCTS()
         self.game_board = GameBoard()
-        # Root state is of course initial board state
+        # Set initial game state
+        self.game_board.set_state(game_init)
+        # Let the root node know where we are starting from
         self.mcts.root.game_state = self.game_board.snapshot()
 
-    # TODO
-    def run(self, maxiter: int = 100):
+    def run(self, maxiter: int = 100) -> MCTS:
         for _ in range(maxiter):
             # Select a node **starting from root** (see MCTS.select())
             parent = self.mcts.select()
+
+            self.game_board.set_state(parent.game_state)
 
             # Expand it (or just return the same node if terminal)
             leaf = self.mcts.expand(parent, available=self.game_board.available_actions)
 
             # Play a game for the newly created node
             # If the node is terminal there is no problem, since action will be ignored
-            reward, is_terminal = self.game_board.play(
-                action=leaf.from_action, state=parent.game_state
-            )
+            reward, is_terminal = self.game_board.play(action=leaf.from_action)
             # Update node game state
             leaf.game_state = self.game_board.snapshot()
 
@@ -32,5 +48,8 @@ class Environment:
 
             # Backprop
             self.mcts.update(leaf=leaf, value=reward, is_terminal=is_terminal)
+        return self.mcts
 
-        ...  # I guess we want to return best actions to take?
+    def best_action_value(self, mcts: MCTS) -> Tuple[int, float]:
+        best_child = mcts.root.select(Greedy)
+        return best_child.from_action, best_child.mean

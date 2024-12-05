@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Set
 
 import numpy as np
+from connect_four.utils import available_actions
 
 
 class SelectionStrategy(ABC):
@@ -53,7 +54,11 @@ class Node:
 
     @property
     def is_leaf(self) -> bool:
-        return len(self.children) < self.MAX_CHILDREN
+        return (
+            True
+            if (available_actions(self.game_state) - self.get_children_actions())
+            else False
+        )
 
     @property
     def mean(self) -> float:
@@ -95,14 +100,17 @@ class Node:
         assert available_actions, "No actions provided for `from_parent` method"
 
         avail = list(available_actions - set(ch.from_action for ch in parent.children))
-        assert avail, "No actions left to take"
+        assert avail, f"No actions left to take."
 
         return cls(parent=parent, from_action=random.choice(avail))
 
     def select(self, strategy: SelectionStrategy = UCB) -> Node:
         self.n_visits += 1
-        if self.is_leaf:  # You only select when you have all your children
+        if (
+            self.is_leaf or self.is_terminal
+        ):  # You only select when you have all your children
             return self
+        assert self.children
         return strategy.select(nodes=self.children)
 
     def add_child(self, child: Node) -> None:
@@ -112,3 +120,6 @@ class Node:
         self.children.add(child)
         # Check that we don't have more children than permitted
         assert not (len(self.children) > self.MAX_CHILDREN)
+
+    def get_children_actions(self) -> Set[int]:
+        return set(ch.from_action for ch in self.children)
