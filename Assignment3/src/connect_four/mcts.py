@@ -14,7 +14,7 @@ class MCTS:
         # Start always from the top
         node = self.root.select()
         # Iterate through nodes until reaching a leaf node
-        while not node.is_leaf:
+        while not (node.is_leaf or node.is_terminal):
             node = node.select()
         return node
 

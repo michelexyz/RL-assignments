@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "connect_four"
+version = "0.1.0"
+authors = [{ name = "Arturo Abril", email = "arturoabrilm@gmail.com" }, { name = "Michele Vanucci", email = "michele.vannucci20@gmail.com"}]
+description = "Playing the Connect Four game - Assignment for the course DP and RL at VU Amsterdam"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+]
+dynamic = ["dependencies"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[tool.pyright]
+include = ["src"]
+exclude = ["**/__pycache__"]
+reportMissingImports = true
+
+pythonVersion = "3.12"
+pythonPlatform = "Linux"
+
+executionEnvironments = [{ root = "src" }]
+
