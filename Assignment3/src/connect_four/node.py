@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-import random
 from abc import ABC, abstractmethod
 from typing import Optional, Set
 
@@ -40,6 +39,7 @@ class Greedy(SelectionStrategy):
 
 class Node:
 
+    game_state: np.ndarray
     parent: Optional[Node]
     from_action: Optional[int]
 
@@ -47,18 +47,20 @@ class Node:
     depth: int
     n_visits: int
     value: float
-    is_terminal: bool
-    game_state: Optional[np.ndarray]
 
     MAX_CHILDREN: int = 2
 
     @property
     def is_leaf(self) -> bool:
-        return (
-            True
-            if (available_actions(self.game_state) - self.get_children_actions())
-            else False
-        )
+        return True if self.available_actions else False
+
+    @property
+    def is_terminal(self) -> bool:
+        return 0 not in self.game_state
+
+    @property
+    def available_actions(self) -> Set[int]:
+        return available_actions(self.game_state) - self.get_children_actions()
 
     @property
     def mean(self) -> float:
@@ -68,16 +70,11 @@ class Node:
 
     def __init__(
         self,
+        game_state: np.ndarray,
         parent: Optional[Node] = None,
         from_action: Optional[int] = None,
     ) -> None:
-        """
-        Initializes a Node, either as a root node or via a class methods
-
-        Args:
-            parent (Optional[Node]): The parent node. None if this is the root node.
-            from_action (Optional[int]): The action that led to this node from its parent.
-        """
+        self.game_state = game_state
         self.parent = parent
         self.from_action = from_action
 
@@ -85,27 +82,16 @@ class Node:
         self.depth = parent.depth + 1 if parent else 0
         self.n_visits = 0
         self.value = 0.0
-        self.is_terminal = False
-        self.game_state = None
 
     @classmethod
-    def from_root(cls) -> Node:
-        return cls()
+    def from_root(cls, state: np.ndarray) -> Node:
+        return cls(game_state=state)
 
     @classmethod
-    def from_parent(cls, parent: Node, available_actions: Set[int]) -> Node:
-        # Available actions in the game board are given as argument
-        # Make sure to not create a child that comes from the same action
-        # (type of edge) as other child from the parent
-        assert available_actions, "No actions provided for `from_parent` method"
-
-        avail = list(available_actions - set(ch.from_action for ch in parent.children))
-        assert avail, f"No actions left to take."
-
-        return cls(parent=parent, from_action=random.choice(avail))
+    def from_parent(cls, state: np.ndarray, parent: Node, action: int) -> Node:
+        return cls(game_state=state, parent=parent, from_action=action)
 
     def select(self, strategy: SelectionStrategy = UCB) -> Node:
-        self.n_visits += 1
         if (
             self.is_leaf or self.is_terminal
         ):  # You only select when you have all your children
@@ -123,3 +109,7 @@ class Node:
 
     def get_children_actions(self) -> Set[int]:
         return set(ch.from_action for ch in self.children)
+
+    def update_value(self, value: int) -> None:
+        self.value += value
+        self.n_visits += 1

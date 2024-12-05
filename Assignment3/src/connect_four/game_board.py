@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import random
 from enum import IntEnum
-from typing import Optional, Set, Tuple
+from typing import Optional, Set
 
 import numpy as np
 from connect_four.utils import available_actions
@@ -9,6 +11,12 @@ from connect_four.utils import available_actions
 class PlayerType(IntEnum):
     US = 1
     OPPONENT = 2
+
+
+class GameResult(IntEnum):
+    WIN = 1
+    DRAW = 0
+    LOSE = -1
 
 
 class GameBoard:
@@ -30,27 +38,35 @@ class GameBoard:
         self.ncols = ncols
         self._grid = np.zeros((nrows, ncols))
 
+    @classmethod
+    def from_grid(cls, grid: np.ndarray) -> GameBoard:
+        nrows, ncols = grid.shape
+        gb = cls(nrows, ncols)
+        gb._grid = grid
+        return gb
+
     def set_state(self, state: np.ndarray) -> None:
         assert (self.nrows, self.ncols) == state.shape
-        self._grid = state.copy()
+        self._grid = state.copy()  # is a copy really needed here?
+        return None
 
     def snapshot(self) -> np.ndarray:
         return self._grid.copy()
 
-    def game_result(self) -> int:
+    def game_result(self) -> GameResult:
         if not self.is_finished:
             return 0  # A cero is fine, we are not backpropagating anyways.
         match self.check_winner():
             case PlayerType.US:
-                return 1
+                return GameResult.WIN
             case PlayerType.OPPONENT:
-                return -1
+                return GameResult.LOSE
             case None:
-                return 0
+                return GameResult.DRAW
 
-    def check_winner(self) -> Optional[int]:
+    def check_winner(self) -> Optional[PlayerType]:
 
-        for player in [1, 2]:
+        for player in [PlayerType.US, PlayerType.OPPONENT]:
             # Horizontal check
             for row in range(self._grid.shape[0]):
                 for col in range(self._grid.shape[1] - 3):
@@ -131,23 +147,21 @@ class GameBoard:
     # # If no winner and the board is full, it's a draw
     # return winner
 
-    def step(self, action: int, player: int) -> bool:
+    def step(self, action: int, player: int) -> None:
         action = self.validate_action(action)
         if action is None:
-            return self.is_finished  # If action is non valid, just leave it like it is
+            return  # If action is non valid, just leave it like it is
 
         row = np.max(np.where(self._grid[:, action] == 0))
-
         self._grid[row, action] = player
-
-        return self.is_finished
+        return
 
     def validate_action(self, action: int) -> Optional[int]:
         if 0 in self._grid[:, action]:
             return action
         return None
 
-    def play(self, action: int) -> Tuple[int, bool]:
+    def play(self, action: int) -> None:
         self.step(action=action, player=PlayerType.US)
         # Opponent turn is part of the transition, so always play his turn
         # if possible (if game is not finished)
@@ -156,7 +170,7 @@ class GameBoard:
                 action=random.choice(list(self.available_actions)),
                 player=PlayerType.OPPONENT,
             )
-        return self.game_result(), self.is_finished
+        return
 
     def rollout(self) -> int:
         while not self.is_finished:
