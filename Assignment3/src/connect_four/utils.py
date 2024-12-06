@@ -19,25 +19,25 @@ def check_winner(grid: np.ndarray) -> Optional[PlayerType]:
         # Horizontal check
         for row in range(grid.shape[0]):
             for col in range(grid.shape[1] - 3):
-                if np.all(grid[row, col + i] == player for i in range(4)):
+                if np.all([grid[row, col + i] == player for i in range(4)]):
                     return player
 
         # Vertical check
         for col in range(grid.shape[1]):
             for row in range(grid.shape[0] - 3):
-                if np.all(grid[row + i, col] == player for i in range(4)):
+                if np.all([grid[row + i, col] == player for i in range(4)]):
                     return player
 
         # Diagonal down (\) check
         for row in range(grid.shape[0] - 3):
             for col in range(grid.shape[1] - 3):
-                if np.all(grid[row + i, col + i] == player for i in range(4)):
+                if np.all([grid[row + i, col + i] == player for i in range(4)]):
                     return player
 
         # Diagonal up (/) check
         for row in range(3, grid.shape[0]):
             for col in range(grid.shape[1] - 3):
-                if np.all(grid[row - i, col + i] == player for i in range(4)):
+                if np.all([grid[row - i, col + i] == player for i in range(4)]):
                     return player
     return
 
