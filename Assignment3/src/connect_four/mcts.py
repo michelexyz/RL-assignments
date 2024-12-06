@@ -117,10 +117,10 @@ class MCTS:
 
     #     print(f"The winner is {self.game.check_winner()}")
 
-    def best_action_value(self) -> Tuple[int, float]:
+    def best_action_value(self) -> Tuple[int, int, float]:
         best_child = self.root.select(Greedy)
 
-        all_children = [(best_child.from_action, child.mean, child.n_visits) for child in self.root.children]
+        all_children = [(child.from_action, child.mean, child.n_visits) for child in self.root.children]
 
         return best_child.from_action, best_child.mean, all_children
     

@@ -1,6 +1,7 @@
 from enum import IntEnum
 
-from mcts import MCTS
+from connect_four.mcts import MCTS
+from connect_four.game_board import GameBoard
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
@@ -16,7 +17,7 @@ class GameType(IntEnum):
 
 
 
-def game_play(game_type: GameType):
+def game_play(game_type: GameType = GameType.HUMAN_VS_RANDOM, empty_start: bool = False):
     
 
 
@@ -30,17 +31,26 @@ def game_play(game_type: GameType):
         {'index': 6, 'val': 'X'}
     ]
 
+    if empty_start:
 
-    mcts = MCTS()
-    game = mcts.game
+        initial_game = GameBoard()
+        mcts = MCTS(game_state=initial_game.snapshot())
+
+    else:
+        mcts = MCTS()
+
+    initial_game = mcts.game
 
 
+
+    game = GameBoard.from_grid(initial_game.snapshot())
+    
     done = False
     while not done:
+        print("Thinking...")
+        mcts.train(maxiter=1048)
 
-        mcts.run(maxiter=2048)
-
-        best_action , best_mean, all_actions = mcts.best_action()
+        best_action , best_mean, all_actions = mcts.best_action_value()
 
         for (from_action, mean, n_visits) in all_actions:
             display_actions[from_action]['val'] = round(mean, 2)
@@ -55,7 +65,7 @@ def game_play(game_type: GameType):
                     raise ValueError
             except ValueError:
                 print(f"{act} is Invalid input. Please enter a number between 0 and 6.")
-        else:
+        else: # mcts as green player
             act = best_action
        
         if game_type in [GameType.MCTS_VS_RANDOM , GameType.HUMAN_VS_RANDOM]:# if we are playing against random agent we step for both players
@@ -63,11 +73,9 @@ def game_play(game_type: GameType):
 
         elif game_type == GameType.MCTS_VS_HUMAN:
 
-            #time.sleep(3)
-            #print("computer is thinking")
             game.step(act, PlayerType.US)
 
-            for action in display_actions.keys():
+            for action in range(len(display_actions)):
                 if action not in game.available_actions:
 
                     display_actions[action]['val'] = 'X'
@@ -93,24 +101,26 @@ def game_play(game_type: GameType):
                 opponent_act.step(act, PlayerType.OPPONENT)
 
           
-        if game.is_finished:
+        if game.is_finished: # if finished show results
 
             reward = game.game_result()
 
             match reward:
                 case 1:
-                    print('Win')
+                    print('Green wins')
                 case 0:
-                    print('Lose')
+                    print('Blue wins')
                 case -1:
                     print('Draw')
 
             
-            for action in display_actions.keys():
+            for action in range(len(display_actions)):
 
                 display_actions[action]['val'] = 'X'
             
-            display(game.state, display_actions)
+            display(game.snapshot(), display_actions)
+
+            done = True
         else:
             mcts = MCTS(game_state=game.snapshot())
 

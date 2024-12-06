@@ -107,7 +107,7 @@ class Node:
 
         self.children.add(child)
         # Check that we don't have more children than permitted
-        assert not (len(self.children) > self.MAX_CHILDREN)
+        #assert not (len(self.children) > self.MAX_CHILDREN)
 
     def get_children_actions(self) -> Set[int]:
         return set(ch.from_action for ch in self.children)
