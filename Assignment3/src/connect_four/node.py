@@ -25,7 +25,9 @@ class UCB(SelectionStrategy):
     @staticmethod
     def strategy(node: Node) -> float:
         if not node.n_visits > 0:
-            return math.inf
+            # This is stupid because python will raise this error anyways
+            # but I want to make explicit that this should not happen
+            raise ZeroDivisionError
         return node.mean + (
             UCB.C * math.sqrt(math.log(node.parent.n_visits / node.n_visits))
         )
