@@ -79,25 +79,25 @@ class GameBoard:
             # Horizontal check
             for row in range(self._grid.shape[0]):
                 for col in range(self._grid.shape[1] - 3):
-                    if all(self._grid[row, col + i] == player for i in range(4)):
+                    if np.all(self._grid[row, col + i] == player for i in range(4)):
                         return player
 
             # Vertical check
             for col in range(self._grid.shape[1]):
                 for row in range(self._grid.shape[0] - 3):
-                    if all(self._grid[row + i, col] == player for i in range(4)):
+                    if np.all(self._grid[row + i, col] == player for i in range(4)):
                         return player
 
             # Diagonal down (\) check
             for row in range(self._grid.shape[0] - 3):
                 for col in range(self._grid.shape[1] - 3):
-                    if all(self._grid[row + i, col + i] == player for i in range(4)):
+                    if np.all(self._grid[row + i, col + i] == player for i in range(4)):
                         return player
 
             # Diagonal up (/) check
             for row in range(3, self._grid.shape[0]):
                 for col in range(self._grid.shape[1] - 3):
-                    if all(self._grid[row - i, col + i] == player for i in range(4)):
+                    if np.all(self._grid[row - i, col + i] == player for i in range(4)):
                         return player
         return
 
