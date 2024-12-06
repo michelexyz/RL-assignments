@@ -22,9 +22,16 @@ class MCTS:
     root: Node
     game: GameBoard
 
-    def __init__(self) -> None:
-        self.game = GameBoard.from_grid(game_init)
+    # def __init__(self) -> None:
+    #     self.game = GameBoard.from_grid(game_init)
+    #     self.root = Node.from_root(state=self.game.snapshot())
+    
+    def __init__(self, game_state=None) -> None:
+        if game_state is None:
+            game_state = game_init
+        self.game = GameBoard.from_grid(game_state)
         self.root = Node.from_root(state=self.game.snapshot())
+        
 
     def select(self) -> Node:
         """Returns either a LEAF or TERMINAL node"""
@@ -84,4 +91,11 @@ class MCTS:
 
     def best_action_value(self) -> Tuple[int, float]:
         best_child = self.root.select(Greedy)
-        return best_child.from_action, best_child.mean
+
+        all_children = [(best_child.from_action, child.mean, child.n_visits) for child in self.root.children]
+
+        return best_child.from_action, best_child.mean, all_children
+    
+    # def best_action_value(self, node)-> Tuple[int, float]:
+    #     best_child = node.select(Greedy)
+    #     return best_child.from_action, best_child.mean
