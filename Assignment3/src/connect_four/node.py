@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Set
 
 import numpy as np
-from connect_four.utils import available_actions
+from connect_four.utils import available_actions, is_game_finished
 
 
 class SelectionStrategy(ABC):
@@ -58,7 +58,7 @@ class Node:
 
     @property
     def is_terminal(self) -> bool:
-        return 0 not in self.game_state
+        return is_game_finished(self.game_state)
 
     @property
     def available_actions(self) -> Set[int]:
@@ -93,7 +93,7 @@ class Node:
     def from_parent(cls, state: np.ndarray, parent: Node, action: int) -> Node:
         return cls(game_state=state, parent=parent, from_action=action)
 
-    def select(self, strategy: SelectionStrategy = UCB) -> Node:
+    def select(self, strategy: SelectionStrategy) -> Node:
         if (
             self.is_leaf or self.is_terminal
         ):  # You only select when you have all your children

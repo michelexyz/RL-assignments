@@ -5,7 +5,12 @@ from enum import IntEnum
 from typing import Optional, Set
 
 import numpy as np
-from connect_four.utils import available_actions
+from connect_four.utils import (
+    PlayerType,
+    available_actions,
+    check_winner,
+    is_game_finished,
+)
 
 
 class InvalidActionError(Exception):
@@ -14,11 +19,6 @@ class InvalidActionError(Exception):
 
 class GameNotFinishedError(Exception):
     pass
-
-
-class PlayerType(IntEnum):
-    US = 1
-    OPPONENT = 2
 
 
 class GameResult(IntEnum):
@@ -38,7 +38,7 @@ class GameBoard:
 
     @property
     def is_finished(self) -> bool:
-        return 0 not in self._grid
+        return is_game_finished(self._grid)
 
     def __init__(self, nrows: int = 6, ncols: int = 7) -> None:
         self.nrows = nrows
@@ -74,32 +74,7 @@ class GameBoard:
                 return GameResult.DRAW
 
     def check_winner(self) -> Optional[PlayerType]:
-
-        for player in [PlayerType.US, PlayerType.OPPONENT]:
-            # Horizontal check
-            for row in range(self._grid.shape[0]):
-                for col in range(self._grid.shape[1] - 3):
-                    if np.all(self._grid[row, col + i] == player for i in range(4)):
-                        return player
-
-            # Vertical check
-            for col in range(self._grid.shape[1]):
-                for row in range(self._grid.shape[0] - 3):
-                    if np.all(self._grid[row + i, col] == player for i in range(4)):
-                        return player
-
-            # Diagonal down (\) check
-            for row in range(self._grid.shape[0] - 3):
-                for col in range(self._grid.shape[1] - 3):
-                    if np.all(self._grid[row + i, col + i] == player for i in range(4)):
-                        return player
-
-            # Diagonal up (/) check
-            for row in range(3, self._grid.shape[0]):
-                for col in range(self._grid.shape[1] - 3):
-                    if np.all(self._grid[row - i, col + i] == player for i in range(4)):
-                        return player
-        return
+        return check_winner(grid=self._grid)
 
     def step(self, action: int, player: int) -> None:
         action = self.validate_action(action)
