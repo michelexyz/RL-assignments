@@ -3,7 +3,7 @@ from typing import Tuple
 
 import numpy as np
 from connect_four.game_board import GameBoard
-from connect_four.node import Greedy, Node
+from connect_four.node import UCB, Greedy, Node, SelectionStrategy
 
 game_init = np.array(
     [
@@ -21,18 +21,20 @@ class MCTS:
 
     root: Node
     game: GameBoard
+    _is_trained: bool
 
     def __init__(self) -> None:
         self.game = GameBoard.from_grid(game_init)
         self.root = Node.from_root(state=self.game.snapshot())
+        self._is_trained = False
 
-    def select(self) -> Node:
+    def select(self, s: SelectionStrategy) -> Node:
         """Returns either a LEAF or TERMINAL node"""
         # Start always from the top
-        node = self.root.select()
+        node = self.root.select(strategy=s)
         # Iterate through nodes until reaching a leaf / terminal node
         while not (node.is_leaf or node.is_terminal):
-            node = node.select()
+            node = node.select(strategy=s)
 
         # VERY important: set game state to start playing from
         self.game.set_state(node.game_state)
@@ -68,10 +70,10 @@ class MCTS:
             parent.update_value(value)
             parent = parent.parent  # This will be `None` for root, so exit loop
 
-    def run(self, maxiter: int = 100) -> None:
+    def train(self, maxiter: int = 100, strategy: SelectionStrategy = UCB) -> None:
         for _ in range(maxiter):
             # Select a node **starting from root** (see MCTS.select())
-            parent = self.select()
+            parent = self.select(s=strategy)
 
             # Expand it (or just return the same node if terminal)
             leaf = self.expand(parent=parent)  # Can be terminal
@@ -80,7 +82,35 @@ class MCTS:
 
             # Backprop
             self.update(leaf=leaf, value=reward)
+
+        self._is_trained = True
         return
+
+    def run_single(self, strategy: SelectionStrategy = Greedy):
+        assert self._is_trained, "MCTS hasn't been trained yet"
+
+        # Initial state always root
+        node = self.root
+        # Set game to match root state (inital state)
+        self.game.set_state(node.game_state)
+        print(node.game_state)
+
+        while not self.game.is_finished:
+            # Select a child according to strategy
+            node = node.select(strategy=strategy)
+            # Choose the action that led to the child, if possible
+            action = (
+                node.from_action
+                if node.from_action in self.game.available_actions
+                # Otherwise choose randomly
+                else random.choice(list(self.game.available_actions))
+            )
+            # Play round
+            self.game.play(action=action)
+            # Print state
+            print(self.game.snapshot())
+
+        print(f"The winner is {self.game.check_winner()}")
 
     def best_action_value(self) -> Tuple[int, float]:
         best_child = self.root.select(Greedy)
