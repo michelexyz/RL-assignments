@@ -5,7 +5,12 @@ from enum import IntEnum
 from typing import Optional, Set
 
 import numpy as np
-from connect_four.utils import PlayerType, available_actions, check_winner
+from connect_four.utils import (
+    PlayerType,
+    available_actions,
+    check_winner,
+    is_game_finished,
+)
 
 
 class InvalidActionError(Exception):
@@ -33,7 +38,7 @@ class GameBoard:
 
     @property
     def is_finished(self) -> bool:
-        return (self.check_winner() is not None) or (0 not in self._grid)
+        return is_game_finished(self._grid)
 
     def __init__(self, nrows: int = 6, ncols: int = 7) -> None:
         self.nrows = nrows

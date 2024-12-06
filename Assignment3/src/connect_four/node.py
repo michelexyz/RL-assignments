@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Set
 
 import numpy as np
-from connect_four.utils import available_actions, check_winner
+from connect_four.utils import available_actions, is_game_finished
 
 
 class SelectionStrategy(ABC):
@@ -58,7 +58,7 @@ class Node:
 
     @property
     def is_terminal(self) -> bool:
-        return (check_winner(self.game_state) is not None) or (0 not in self.game_state)
+        return is_game_finished(self.game_state)
 
     @property
     def available_actions(self) -> Set[int]:

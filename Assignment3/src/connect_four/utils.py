@@ -40,3 +40,7 @@ def check_winner(grid: np.ndarray) -> Optional[PlayerType]:
                 if np.all(grid[row - i, col + i] == player for i in range(4)):
                     return player
     return
+
+
+def is_game_finished(grid: np.ndarray) -> bool:
+    return (check_winner(grid) is not None) or (0 not in grid)
