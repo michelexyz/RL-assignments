@@ -89,34 +89,33 @@ class MCTS:
             # Backprop
             self.update(leaf=leaf, value=reward)
 
-        self._is_trained = True
         return
 
-    def run_single(self, strategy: SelectionStrategy = Greedy):
-        assert self._is_trained, "MCTS hasn't been trained yet"
+    # def run_single(self, strategy: SelectionStrategy = Greedy):
+    #     assert self._is_trained, "MCTS hasn't been trained yet"
 
-        # Initial state always root
-        node = self.root
-        # Set game to match root state (inital state)
-        self.game.set_state(node.game_state)
-        print(node.game_state)
+    #     # Initial state always root
+    #     node = self.root
+    #     # Set game to match root state (inital state)
+    #     self.game.set_state(node.game_state)
+    #     print(node.game_state)
 
-        while not self.game.is_finished:
-            # Select a child according to strategy
-            node = node.select(strategy=strategy)
-            # Choose the action that led to the child, if possible
-            action = (
-                node.from_action
-                if node.from_action in self.game.available_actions
-                # Otherwise choose randomly
-                else random.choice(list(self.game.available_actions))
-            )
-            # Play round
-            self.game.play(action=action)
-            # Print state
-            print(self.game.snapshot())
+    #     while not self.game.is_finished:
+    #         # Select a child according to strategy
+    #         node = node.select(strategy=strategy)
+    #         # Choose the action that led to the child, if possible
+    #         action = (
+    #             node.from_action
+    #             if node.from_action in self.game.available_actions
+    #             # Otherwise choose randomly
+    #             else random.choice(list(self.game.available_actions))
+    #         )
+    #         # Play round
+    #         self.game.play(action=action)
+    #         # Print state
+    #         print(self.game.snapshot())
 
-        print(f"The winner is {self.game.check_winner()}")
+    #     print(f"The winner is {self.game.check_winner()}")
 
     def best_action_value(self) -> Tuple[int, float]:
         best_child = self.root.select(Greedy)

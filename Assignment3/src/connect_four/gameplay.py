@@ -5,6 +5,8 @@ from mcts import MCTS
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
+from connect_four.utils import PlayerType
+import time
 
 class GameType(IntEnum):
     HUMAN_VS_RANDOM = 0
@@ -31,9 +33,7 @@ def game_play(game_type: GameType):
 
     mcts = MCTS()
     game = mcts.game
-    human_intervention = False
 
-    
 
     done = False
     while not done:
@@ -42,27 +42,77 @@ def game_play(game_type: GameType):
 
         best_action , best_mean, all_actions = mcts.best_action()
 
-        for 
+        for (from_action, mean, n_visits) in all_actions:
+            display_actions[from_action]['val'] = round(mean, 2)
         
-        for action in best_action[1]:
-            display_actions[action.action]['val'] = round(action.qval, 2)
-        display(game.state, display_actions)
-        act = best_action[0].action
-        if human_intervention:
-            try:
-                act = int(input("Choose a column (0-6): "))
-            except ValueError:
-                print("Invalid input. Please enter a number between 0 and 6.")
+        display(game.snapshot(), display_actions)
+        if game_type == GameType.HUMAN_VS_RANDOM:
             
-        reward, done = game.step(act)
-        if done:
-            if reward > 0:
-                print('Win')
-            elif reward < 0:
-                print('Lose')
-            else:
-                print('Draw')
+            try:
+                act = int(input(f"Choose an available column: game.available_actions: {game.available_actions}"))
+
+                if act not in game.available_actions:
+                    raise ValueError
+            except ValueError:
+                print(f"{act} is Invalid input. Please enter a number between 0 and 6.")
+        else:
+            act = best_action
+       
+        if game_type in [GameType.MCTS_VS_RANDOM , GameType.HUMAN_VS_RANDOM]:# if we are playing against random agent we step for both players
+            game.play(act)
+
+        elif game_type == GameType.MCTS_VS_HUMAN:
+
+            #time.sleep(3)
+            #print("computer is thinking")
+            game.step(act, PlayerType.US)
+
+            for action in display_actions.keys():
+                if action not in game.available_actions:
+
+                    display_actions[action]['val'] = 'X'
+                else:
+                    display_actions[action]['val'] = '?'
+
+            display(game.snapshot(), display_actions)
+            if not game.is_finished:
+
+                try:
+                
+                    opponent_act = int(input(f"Choose an available column: game.available_actions: {game.available_actions}"))
+
+                    if opponent_act not in game.available_actions:
+                        print(f"{opponent_act} is Invalid input. Please enter a number between 0 and 6.")
+
+                        raise ValueError
+                        
+                except ValueError:
+                    print("Invalid input. Please enter a number between 0 and 6.")
+                    continue
+
+                opponent_act.step(act, PlayerType.OPPONENT)
+
+          
+        if game.is_finished:
+
+            reward = game.game_result()
+
+            match reward:
+                case 1:
+                    print('Win')
+                case 0:
+                    print('Lose')
+                case -1:
+                    print('Draw')
+
+            
+            for action in display_actions.keys():
+
+                display_actions[action]['val'] = 'X'
+            
             display(game.state, display_actions)
+        else:
+            mcts = MCTS(game_state=game.snapshot())
 
 
 
