@@ -47,14 +47,16 @@ class MCTS:
         if parent.is_terminal:
             return parent
 
+        # Choose random action (from available) to expand parent and play one round
         action = random.choice(list(parent.available_actions))
         self.game.play(action=action)
 
+        # Create the child with the results from the just played game
         child = Node.from_parent(
             state=self.game.snapshot(), parent=parent, action=action
         )
-
         parent.add_child(child)
+
         return child
 
     def update(self, leaf: Node, value: int) -> None:
