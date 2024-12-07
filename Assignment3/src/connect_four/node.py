@@ -50,8 +50,6 @@ class Node:
     n_visits: int
     value: float
 
-    MAX_CHILDREN: int = 2
-
     @property
     def is_leaf(self) -> bool:
         return True if self.available_actions else False
@@ -107,7 +105,7 @@ class Node:
 
         self.children.add(child)
         # Check that we don't have more children than permitted
-        #assert not (len(self.children) > self.MAX_CHILDREN)
+        assert not (len(self.children) > self.game_state.shape[1])
 
     def get_children_actions(self) -> Set[int]:
         return set(ch.from_action for ch in self.children)

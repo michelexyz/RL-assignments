@@ -76,7 +76,7 @@ class GameBoard:
     def check_winner(self) -> Optional[PlayerType]:
         return check_winner(grid=self._grid)
 
-    def step(self, action: int, player: int) -> None:
+    def step(self, action: int, player: PlayerType) -> None:
         action = self.validate_action(action)
         row = np.max(np.where(self._grid[:, action] == 0))
         self._grid[row, action] = player
@@ -87,20 +87,23 @@ class GameBoard:
         # This should not happen if we are doing things correctly, so raise
         raise InvalidActionError
 
-    def play(self, action: int) -> None:
-        self.step(action=action, player=PlayerType.US)
-        # Opponent turn is part of the transition, so always play his turn
-        # if possible (if game is not finished)
+    def play(self, first_action: int, second_action: Optional[int] = None) -> None:
+        # First play
+        self.step(action=first_action, player=PlayerType.US)
+
+        # Second play
+        second_action = (
+            second_action
+            if second_action is not None
+            else random.choice(list(self.available_actions))
+        )
         if not self.is_finished:
-            self.step(
-                action=random.choice(list(self.available_actions)),
-                player=PlayerType.OPPONENT,
-            )
+            self.step(action=second_action, player=PlayerType.OPPONENT)
         return
 
     def rollout(self) -> GameResult:
         while not self.is_finished:
             # We left the game in a certain state when calling `play`, start
             # rollllling out from there
-            self.play(action=random.choice(list(self.available_actions)))
+            self.play(first_action=random.choice(list(self.available_actions)))
         return self.game_result()
