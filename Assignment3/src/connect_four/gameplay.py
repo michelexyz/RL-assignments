@@ -17,7 +17,7 @@ class GameType(IntEnum):
 
 
 
-def game_play(game_type: GameType = GameType.HUMAN_VS_RANDOM, empty_start: bool = False):
+def game_play(game_type: GameType = GameType.HUMAN_VS_RANDOM, empty_start: bool = False, maxiter= 2048):
     
 
 
@@ -48,7 +48,7 @@ def game_play(game_type: GameType = GameType.HUMAN_VS_RANDOM, empty_start: bool 
     done = False
     while not done:
         print("Thinking...")
-        mcts.train(maxiter=1048)
+        mcts.train(maxiter=maxiter)
 
         best_action , best_mean, all_actions = mcts.best_action_value()
 
