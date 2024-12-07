@@ -54,15 +54,14 @@ class GameBoard:
 
     def set_state(self, state: np.ndarray) -> None:
         assert (self.nrows, self.ncols) == state.shape
-        self._grid = state.copy()  # This is indeed needed
+        self._grid = state.copy()
         return
 
     def snapshot(self) -> np.ndarray:
-        return self._grid.copy()  # This too
+        return self._grid.copy()
 
     def game_result(self) -> GameResult:
         if not self.is_finished:
-            # This should not happen if we are doing things correctly, so raise
             raise GameNotFinishedError
 
         match self.check_winner():
@@ -84,10 +83,12 @@ class GameBoard:
     def validate_action(self, action: int) -> int:
         if 0 in self._grid[:, action]:
             return action
-        # This should not happen if we are doing things correctly, so raise
         raise InvalidActionError
 
     def play(self, first_action: int, second_action: Optional[int] = None) -> None:
+        """First move must always be explicit. Second move can be `None`,
+        and in this case the second player will play randomly
+        """
         # First play
         self.step(action=first_action, player=PlayerType.US)
 

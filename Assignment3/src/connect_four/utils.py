@@ -1,6 +1,8 @@
 from enum import IntEnum
-from typing import Optional, Set
+from typing import Dict, Optional, Set
 
+import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -44,3 +46,53 @@ def check_winner(grid: np.ndarray) -> Optional[PlayerType]:
 
 def is_game_finished(grid: np.ndarray) -> bool:
     return (check_winner(grid) is not None) or (0 not in grid)
+
+
+def display_plt(grid: np.ndarray, qvalues: Dict[int, str]) -> None:
+    _, ax = plt.subplots(figsize=[7, 6])
+    cmap = mcolors.ListedColormap(["white", "green", "blue"])
+    norm = mcolors.BoundaryNorm([-1, 0.5, 1.5, 2.5], cmap.N)
+    ax.matshow(grid, cmap=cmap, norm=norm)
+
+    for x in range(8):
+        ax.plot([x - 0.5, x - 0.5], [-0.5, 5.5], "k")
+    for y in range(7):
+        ax.plot([-0.5, 6.5], [y - 0.5, y - 0.5], "k")
+
+    for a, value in qvalues.items():
+        ax.text(
+            a,
+            -1,
+            str(value),
+            ha="center",
+            va="center",
+            fontsize=20,
+            color="black",
+        )
+
+    ax.set_axis_off()
+    plt.show()
+    plt.close()
+
+
+def display_ascii(grid: np.ndarray, **kwargs) -> None:
+    # ANSI color codes for the table
+    GREEN = "\033[92m"  # Bright Green
+    BLUE = "\033[96m"  # Bright Cyan
+    GRAY = "\033[37m"  # Light Gray
+    RESET = "\033[0m"  # Reset to default color
+
+    # Symbols for each state
+    symbols = {
+        0: f"{GRAY}○{RESET}",
+        PlayerType.US: f"{GREEN}●{RESET}",
+        PlayerType.OPPONENT: f"{BLUE}●{RESET}",
+    }
+
+    # Print the board
+    print(
+        f"Player {PlayerType.US} playing {GREEN}●{RESET}\nPlayer {PlayerType.OPPONENT} playing {BLUE}●{RESET}"
+    )
+    for row in grid:
+        print(" ".join(symbols[cell] for cell in row))
+    print()  # Add an extra line for spacing

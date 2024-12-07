@@ -12,6 +12,7 @@ class MCTS:
 
     root: Node | None
     game: GameBoard | None
+    maxiter: int
 
     @property
     def qvalues(self) -> QValuesDict:
@@ -21,9 +22,10 @@ class MCTS:
             else {}
         )
 
-    def __init__(self) -> None:
+    def __init__(self, maxiter: int = 1048) -> None:
         self.game = None
         self.root = None
+        self.maxiter = maxiter
 
     def select(self, s: SelectionStrategy) -> Node:
         """Returns either a LEAF or TERMINAL node"""
@@ -70,14 +72,13 @@ class MCTS:
     def run(
         self,
         game_state: np.ndarray,
-        maxiter: int = 100,
         strategy: SelectionStrategy = UCB,
     ) -> QValuesDict:
 
         self.game = GameBoard.from_grid(game_state)
         self.root = Node.from_root(state=self.game.snapshot())
 
-        for _ in range(maxiter):
+        for _ in range(self.maxiter):
             # Select a node **starting from root** (see MCTS.select())
             parent = self.select(s=strategy)
 
@@ -90,14 +91,3 @@ class MCTS:
             self.update(leaf=leaf, value=reward)
 
         return self.qvalues
-
-
-#     def best_action_value(self) -> Tuple[int, int, float]:
-# best_child = self.root.select(Greedy)
-
-# all_children = [
-# (child.from_action, child.mean, child.n_visits)
-# for child in self.root.children
-# ]
-
-# return best_child.from_action, best_child.mean, all_children
