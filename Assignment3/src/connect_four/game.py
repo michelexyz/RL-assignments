@@ -5,7 +5,7 @@ from typing import Dict, Optional
 import numpy as np
 from connect_four.game_board import GameBoard, InvalidActionError
 from connect_four.mcts import MCTS
-from connect_four.utils import display_plt
+from connect_four.utils import display_plt, display_circles
 
 
 class GameType(Enum):
@@ -84,7 +84,7 @@ class Game:
             case GameType.MCTS_VS_RANDOM | GameType.HUMAN_VS_RANDOM:
                 return None  # Return `None` so that we can play randomly
 
-    def play(self, show: bool = True, display_fun=display_plt) -> None:
+    def play(self, show: bool = True, display_fun=display_circles) -> None:
 
         while not self.game_board.is_finished:
             self.game_board.play(

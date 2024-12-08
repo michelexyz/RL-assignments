@@ -75,7 +75,7 @@ def display_plt(grid: np.ndarray, qvalues: Dict[int, str]) -> None:
     plt.close()
 
 
-def display(board, values):
+def display_circles(grid: np.ndarray, qvalues: Dict[int, str]) -> None:
     fig, ax = plt.subplots(figsize=[7, 6])
     
     # Define colors for the pieces
@@ -83,7 +83,7 @@ def display(board, values):
     blue_color = '#3498db'   # Peter River
     
     # Draw the grid lines
-    rows, cols = board.shape
+    rows, cols = grid.shape
     for x in range(cols + 1):
         ax.plot([x - 0.5, x - 0.5], [-0.5, rows - 0.5], 'k')
     for y in range(rows + 1):
@@ -93,7 +93,7 @@ def display(board, values):
     # 0 = empty, 1 = green, 2 = blue
     for i in range(rows):
         for j in range(cols):
-            val = board[i, j]
+            val = grid[i, j]
             if val == 0:
                 c = 'white'
             elif val == 1:
@@ -103,10 +103,17 @@ def display(board, values):
             # Plot a circle marker (o) with a black edge for contrast
             ax.scatter(j, i, s=1200, c=c, marker='o', edgecolors='black')
     
-    # Plot the text values below the board, if any
-    for v in values:
-        ax.text(v['index'], -1, str(v['val']), ha='center', va='center', 
-                fontsize=20, color='black')
+    
+    for a, value in qvalues.items():
+        ax.text(
+            a,
+            -1,
+            str(value),
+            ha="center",
+            va="center",
+            fontsize=20,
+            color="black",
+        )
     
     # Adjust the aspect ratio and remove axes
     ax.set_aspect('equal')
