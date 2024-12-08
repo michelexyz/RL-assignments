@@ -172,7 +172,7 @@ def display(board, values):
             elif val == 2:
                 c = blue_color
             # Plot a circle marker (o) with a black edge for contrast
-            ax.scatter(j, i, s=1000, c=c, marker='o', edgecolors='black')
+            ax.scatter(j, i, s=1200, c=c, marker='o', edgecolors='black')
     
     # Plot the text values below the board, if any
     for v in values:
