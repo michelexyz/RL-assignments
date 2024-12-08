@@ -5,7 +5,7 @@ from typing import Dict, Optional
 import numpy as np
 from connect_four.game_board import GameBoard, InvalidActionError
 from connect_four.mcts import MCTS
-from connect_four.utils import display_plt, display_circles
+from connect_four.utils import display_circles
 
 
 class GameType(Enum):
@@ -23,10 +23,17 @@ class Game:
         mcts_maxiter: int = 1048,
     ):
         self.mcts = MCTS(maxiter=mcts_maxiter)
-        self.game_board = (
-            GameBoard() if game_state is None else GameBoard.from_grid(game_state)
-        )
         self.game_type = game_type
+        self._game_state = game_state
+
+        self.game_board = None
+
+    def init_gameboard(self) -> None:
+        self.game_board = (
+            GameBoard()
+            if self._game_state is None
+            else GameBoard.from_grid(self._game_state.copy())
+        )
 
     def parse_input(self, s: str) -> int:
         if s in (":q", "quit", "quit()", "exit", "exit()"):
@@ -85,6 +92,8 @@ class Game:
                 return None  # Return `None` so that we can play randomly
 
     def play(self, show: bool = True, display_fun=display_circles) -> None:
+
+        self.init_gameboard()
 
         while not self.game_board.is_finished:
             self.game_board.play(
