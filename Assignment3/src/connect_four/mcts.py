@@ -32,18 +32,11 @@ class MCTS:
         # Start always from the top
         node = self.root.select(strategy=s)
         # Iterate through nodes until reaching a leaf / terminal node
-        # update the game state to the node's state
-        self.game.play(node.from_action)
-        self.game.set_state(self.game.snapshot())
-        
-
         while not (node.is_leaf or node.is_terminal):
             node = node.select(strategy=s)
-            self.game.play(node.from_action)
-            self.game.set_state(self.game.snapshot())
 
         # VERY important: set game state to start playing from
-        #self.game.set_state(node.game_state)
+        self.game.set_state(node.game_state)
 
         return node
 
@@ -85,8 +78,7 @@ class MCTS:
         self.game = GameBoard.from_grid(game_state)
         self.root = Node.from_root(state=self.game.snapshot())
 
-        for _ in range(self.maxiter):        
-
+        for _ in range(self.maxiter):
             # Select a node **starting from root** (see MCTS.select())
             parent = self.select(s=strategy)
 
@@ -97,7 +89,5 @@ class MCTS:
 
             # Backprop
             self.update(leaf=leaf, value=reward)
-
-            self.game.reset()
 
         return self.qvalues
