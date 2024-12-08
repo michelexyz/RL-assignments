@@ -31,6 +31,7 @@ class GameBoard:
     nrows: int
     ncols: int
     _grid: np.ndarray
+    _initial_grid: np.ndarray
 
     @property
     def available_actions(self) -> Set[int]:
@@ -44,12 +45,14 @@ class GameBoard:
         self.nrows = nrows
         self.ncols = ncols
         self._grid = np.zeros((nrows, ncols))
+        self._initial_grid = self._grid.copy()
 
     @classmethod
     def from_grid(cls, grid: np.ndarray) -> GameBoard:
         nrows, ncols = grid.shape
         gb = cls(nrows, ncols)
         gb._grid = grid
+        gb._initial_grid = grid.copy()
         return gb
 
     def set_state(self, state: np.ndarray) -> None:
@@ -108,3 +111,7 @@ class GameBoard:
             # rollllling out from there
             self.play(first_action=random.choice(list(self.available_actions)))
         return self.game_result()
+    
+    def reset(self) -> None:
+        self._grid = self._initial_grid.copy()
+        return
