@@ -11,7 +11,7 @@ class PlayerType(IntEnum):
     OPPONENT = 2
 
 
-def available_actions(grid) -> Set[int]:
+def available_actions(grid: np.ndarray) -> Set[int]:
     return set(np.where(grid == 0)[1])
 
 

@@ -45,7 +45,7 @@ class Game:
         while True:
             try:
                 action = self.parse_input(
-                    input(f"Choose an action from: {[str(a) for a in av]}")
+                    input(f"Choose an action from: {[str(a) for a in av]}: ")
                 )
                 if action in av:
                     return action
@@ -70,7 +70,10 @@ class Game:
         # Return the best action (greedy) that can be taken from root
         print("Running tree search to choose action ...")
         qvalues = self.mcts.run(game_state=self.game_board.snapshot())
-        print(f"Qvalues: {qvalues}")
+        print(
+            "Q-values:",
+            ", ".join(f"{a}: {round(v, 2)}" for a, v in sorted(qvalues.items())),
+        )
         print(f"Choosing {int(max(qvalues, key=qvalues.get))}")
         return int(max(qvalues, key=qvalues.get))
 
@@ -94,6 +97,12 @@ class Game:
     def play(self, show: bool = True, display_fun=display_circles) -> None:
 
         self.init_gameboard()
+
+        if show:
+            display_fun(
+                grid=self.game_board.snapshot(),
+                qvalues={i: "X" for i in range(self.game_board.ncols)},
+            )
 
         while not self.game_board.is_finished:
             self.game_board.play(
